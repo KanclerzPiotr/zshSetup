@@ -4,28 +4,15 @@
 sudo apt update && sudo apt upgrade -y
 
 # Install essential packages
-sudo apt install -y zsh python-is-python3 bat fzf python3-dev python3-pip python3-setuptools zoxide ripgrep fd-find micro gpg
+sudo apt install -y zsh python-is-python3 bat fzf python3-dev python3-pip python3-setuptools zoxide ripgrep fd-find micro
+
 # Install eza
-
-for arg in "$@"
-do
-    case $arg in
-        --eza)
-        echo "Downloading and installing eza..."
-
-        # Download and extract eza tar.gz file
-        wget -c https://github.com/eza-community/eza/releases/latest/download/eza_x86_64-unknown-linux-gnu.tar.gz -O - | tar xz
-
-        # Set permissions and move binary to /usr/local/bin
-        sudo chmod +x eza
-        sudo chown root:root eza
-        sudo mv eza /usr/local/bin/eza
-
-        echo "eza installation completed."
-        shift
-        ;;
-    esac
-done
+sudo mkdir -p /etc/apt/keyrings
+wget -qO- https://raw.githubusercontent.com/eza-community/eza/main/deb.asc | sudo gpg --dearmor -o /etc/apt/keyrings/gierens.gpg
+echo "deb [signed-by=/etc/apt/keyrings/gierens.gpg] http://deb.gierens.de stable main" | sudo tee /etc/apt/sources.list.d/gierens.list
+sudo chmod 644 /etc/apt/keyrings/gierens.gpg /etc/apt/sources.list.d/gierens.list
+sudo apt update
+sudo apt install -y eza
 
 # Change the default shell to Zsh
 chsh -s $(which zsh)
@@ -76,9 +63,9 @@ if ! grep -q "zstyle ':omz:plugins:eza'" ~/.zshrc; then
 fi
 
 # Add plugins to .zshrc if not already present
-if ! grep -q "plugins=(git)" ~/.zshrc; then
-    echo "Adding alias-finder, extract, eza, fzf, zoxide, thefuck, copypath, zsh-syntax-highlighting, zsh-autosuggestions, and zsh-completions to .zshrc"
-    sed -i 's/plugins=(git)/plugins=(git alias-finder extract eza fzf zoxide thefuck copypath zsh-syntax-highlighting zsh-autosuggestions zsh-completions)/' ~/.zshrc
+if ! grep -q "alias-finder" ~/.zshrc; then
+    echo "Adding alias-finder, extract, eza, fzf, zoxide, copypath, zsh-syntax-highlighting, zsh-autosuggestions, and zsh-completions to .zshrc"
+    sed -i 's/plugins=(git)/plugins=(git alias-finder sudo extract eza fzf zoxide copypath zsh-syntax-highlighting zsh-autosuggestions zsh-completions)/' ~/.zshrc
 fi
 
 # Install zoxide initialization in .zshrc
@@ -125,7 +112,5 @@ if ! grep -q "FZF_DEFAULT_COMMAND" ~/.zshrc; then
     echo '}' >> ~/.zshrc
 fi
 
-# Apply changes to .zshrc
-source ~/.zshrc
 
 echo "Setup complete! Please restart your terminal or log out and log back in to use Zsh."
